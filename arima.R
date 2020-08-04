@@ -1,0 +1,56 @@
+mydata<- read.csv("klm.csv")
+attach(mydata)
+passengernumbers <- ts(mydata$Adjusted.Passenger.Count[1:115], start = c(2005,07), frequency = 12)
+plot(passengernumbers,type="l",ylab="Passenger Numbers")
+title("Passenger Numbers")
+
+library(pastecs)
+stat.desc(mydata)
+
+# Load libraries
+library(MASS)
+library(tseries)
+library(forecast)
+
+# ACF, PACF and Dickey-Fuller Test
+x<-acf(passengernumbers)
+acf(passengernumbers, lag.max=20)
+pacf(passengernumbers, lag.max=20)
+adf.test(passengernumbers)
+
+components <- decompose(passengernumbers)
+components
+plot(components)
+
+# ARIMA
+fitpassengers<-auto.arima(passengernumbers, trace=TRUE, test="kpss", ic="bic")
+fitpassengers
+confint(fitpassengers)
+
+# Forecasted Values From ARIMA
+forecastedvalues=forecast(fitpassengers,h=14)
+forecastedvalues
+plot(forecastedvalues)
+
+forecastedvaluesextracted=as.numeric(forecastedvalues$mean)
+finalforecastvalues=forecastedvaluesextracted
+
+# Percentage Error
+df<-data.frame(mydata$Adjusted.Passenger.Count[116:129],finalforecastvalues)
+col_headings<-c("Actual Passenger Numbers","Forecasted Passenger Numbers")
+names(df)<-col_headings
+attach(df)
+
+# Ljung-Box
+Box.test(fitpassengers$resid, lag=5, type="Ljung-Box")
+Box.test(fitpassengers$resid, lag=10, type="Ljung-Box")
+Box.test(fitpassengers$resid, lag=15, type="Ljung-Box")
+
+# Errors
+library(Metrics)
+rmse(df$`Actual Passenger Numbers`, df$`Forecasted Passenger Numbers`)
+
+## Forecast Error
+forecast_error=(df$`Actual Passenger Numbers`-df$`Forecasted Passenger Numbers`)
+forecast_error
+mean(forecast_error)
