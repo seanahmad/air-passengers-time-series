@@ -54,3 +54,4 @@ rmse(df$`Actual Passenger Numbers`, df$`Forecasted Passenger Numbers`)
 forecast_error=(df$`Actual Passenger Numbers`-df$`Forecasted Passenger Numbers`)
 forecast_error
 mean(forecast_error)
+mean(df$`Actual Passenger Numbers`)
